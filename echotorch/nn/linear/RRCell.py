@@ -166,7 +166,7 @@ class RRCell(Node):
         # end if
 
     # end forward
-
+    '''
     # Finish training
     def finalize(self):
         """
@@ -196,11 +196,48 @@ class RRCell(Node):
 
         # Not in training mode anymore
         self.train(False)
+    '''
     # end finalize
 
     # endregion PUBLIC
 
     # region PRIVATE
+
+    # Finish training
+    def finalize(self):
+        """
+        Finalize training with inverse or pseudo-inverse
+        """
+        if self._averaged:
+            # Average
+            self.xTx = self.xTx / self._n_samples
+            self.xTy = self.xTy / self._n_samples
+        # end if
+
+        # We need to solve wout = (xTx)^(-1)xTy
+        # Covariance matrix xTx
+        
+        temp_tensor = torch.eye(self._input_dim + self._with_bias, dtype=self._dtype)
+        
+        temp_tensor = temp_tensor.cuda() if torch.cuda.is_available() else temp_tensor
+        
+        ridge_xTx = self.xTx + self._ridge_param * temp_tensor
+        
+        # Inverse / pinverse
+        if self._learning_algo == "inv":
+            inv_xTx = ridge_xTx.inverse()
+        elif self._learning_algo == "pinv":
+            inv_xTx = ridge_xTx.pinverse()
+        else:
+            raise Exception("Unknown learning method {}".format(self._learning_algo))
+        # end if
+
+        # wout = (xTx)^(-1)xTy
+        self.w_out = torch.mm(inv_xTx, self.xTy).t()
+
+        # Not in training mode anymore
+        self.train(False)
+    # end finalize
 
     # Add constant
     def _add_constant(self, x):
