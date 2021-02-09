@@ -139,11 +139,11 @@ print('is train x and y on gpu? ', train_inputs.is_cuda, train_targets.is_cuda)
 # Make a prediction with our trained ESN
 y_predicted = esn(train_inputs, None) # causing errors
 
-
 # Print training MSE and NRMSE
-print(u"Train MSE: {}".format(echotorch.utils.mse(y_predicted.data, train_targets.data)))
-print(u"Train NRMSE: {}".format(echotorch.utils.nrmse(y_predicted.data, train_targets.data)))
-print(u"")
+print(u"Train MSE: {}".format(echotorch.utils.mse(y_predicted.data, 
+    train_targets.data)))
+print(u"Train NRMSE: {}".format(echotorch.utils.nrmse(y_predicted.data, 
+    train_targets.data)))
 
 # sending tensor back to host memory so that it can be plotted
 train_targets = train_targets.cpu()
