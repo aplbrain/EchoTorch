@@ -232,6 +232,17 @@ class ESN(Node):
         return self._esn_cell.w_in
     # end w_in
 
+    # Set washout
+    # New by Sean
+    @w_in.setter
+    def w_in(self, w_in):
+        """
+        Washout
+        :param washout: New washout
+        """
+        self._esn_cell.w_in = w_in
+    # end washout
+
     # Output matrix
     @property
     def w_out(self):
