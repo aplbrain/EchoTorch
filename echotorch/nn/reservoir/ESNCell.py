@@ -316,7 +316,8 @@ class ESNCell(Node, Observable):
         :param ut: Inputs
         :return: Processed inputs
         """
-        return self.w_in.mv(ut.float())
+
+        return self.w_in.mv(ut)
     # end _input_layer
 
     # Init hidden layer
