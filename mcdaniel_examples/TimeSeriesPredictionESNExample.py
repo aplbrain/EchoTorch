@@ -31,7 +31,7 @@ n_train_samples = 1
 n_test_samples = 1
 
 # Batch size (how many sample processed at the same time?)
-batch_size = 1
+batch_size = 500
 
 # Reservoir hyper-parameters
 spectral_radius = 1.07
