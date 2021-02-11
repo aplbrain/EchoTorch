@@ -89,3 +89,10 @@ ENV/
 .ropeproject
 /.idea/
 /MNIST/
+
+# MISC stuff from pytorch
+*.png
+*.gz
+*.pt
+*.out
+*-ubyte
