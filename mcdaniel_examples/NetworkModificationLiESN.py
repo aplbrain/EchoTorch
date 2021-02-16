@@ -6,6 +6,16 @@ echo state network
 Inpsired by: EchoTorch/examples/timeserie_prediction/narma10_esn.py
 '''
 
+'''
+NEW GOAL:
+
+* Take a look at RHN IRADs Box folder 
+* Perl input network modification code into a utility function 
+* Use Marisel's networks for the Reservoir 
+* Randomly select some of Marisel's networks and just create figures 
+
+'''
+
 import torch, sys, os
 sys.path.append(os.path.join(os.path.dirname(sys.path[0]), ''))
 from echotorch.datasets.NARMADataset import NARMADataset
@@ -63,12 +73,79 @@ def vis_weights_from_input_to_res(esn):
     nx.draw_networkx_labels(G,pos=layout)
     plt.savefig('test.png')
 
+# Generate the matrix
+#def custom_generate_matrix(self, size, dtype=torch.float64):
+def custom_generate_matrix(size, dtype=torch.float64):
+    """
+    Generate the matrix
+    :param: Matrix size (row, column)
+    :param: Data type to generate
+    :return: Generated matrix
+    """
+    # Params
+    #connectivity = self.get_parameter('connectivity')
+    #mean = self.get_parameter('mean')
+    #std = self.get_parameter('std')
 
-def replace_adj_matrix(esn):
+    #connectivity = 0.1954
+    connectivity = 0.0824
+    mean=0.0
+    std=1.0
+
+    # Full connectivity if none
+    if connectivity is None:
+        w = torch.zeros(size, dtype=dtype)
+        w = w.normal_(mean=mean, std=std)
+    else:
+        # Generate matrix with entries from norm
+        w = torch.zeros(size, dtype=dtype)
+        w = w.normal_(mean=mean, std=std)
+
+        # Generate mask from bernoulli
+        mask = torch.zeros(size, dtype=dtype)
+        mask.bernoulli_(p=connectivity)
+
+        # Minimum edges
+        #minimum_edges = min(self.get_parameter('minimum_edges'), np.prod(size))
+        minimum_edges = 0
+
+        # Add edges until minimum is ok
+        while torch.sum(mask) < minimum_edges:
+            # Random position at 1
+            x = torch.randint(high=size[0], size=(1, 1))[0, 0].item()
+            y = torch.randint(high=size[1], size=(1, 1))[0, 0].item()
+            mask[x, y] = 1.0
+        # end while
+
+        # Mask filtering
+        w *= mask
+    # end if
+
+    return w
+    # end _generate_matrix
+
+def replace_res_network_matrix(esn):
+
+    # read in HSBM network
+    path = '/home/mcdansl1/Data/hsbm'
+    list_of_graphml_files = os.listdir(path) # returns list
+    print(list_of_graphml_files[0])
+    G = nx.read_graphml(path + '/' + list_of_graphml_files[1])
+    hsbm_adj_matrix = nx.to_numpy_matrix(G) # converts A's networkx to adj matrix to numpy numpy array
+    print(hsbm_adj_matrix)
+
+    hsbm_adj_matrix_tensor = torch.tensor(hsbm_adj_matrix, dtype=torch.float)
+    esn.w = hsbm_adj_matrix_tensor
+    print(esn.w.numpy())
+
+    return esn
+
+def replace_res_network_matrix_with_custom(esn, matrix_tensor):
+    esn.w = matrix_tensor
+    return esn
+
+def replace_input_network_matrix(esn):
     esn = esn.cpu()
-    #print(esn.w_in.dtype)
-    #print(esn.w_in.shape)
-    #print(esn.w_in)
     A = esn.w_in.numpy()
     reservoir_size = esn.w_in.size()[0] # get the size of the reservoir 
     result = np.zeros((reservoir_size + 1, reservoir_size + 1)) # create zeroed np array
@@ -110,7 +187,7 @@ batch_size = 1
 spectral_radius = 1.07
 leaky_rate = 0.9261
 input_dim = 1
-reservoir_size = 10
+reservoir_size = 1000
 connectivity = 0.1954
 ridge_param = 0.00000409
 input_scaling = 0.9252
@@ -177,15 +254,25 @@ esn = etrs.LiESN(
     ridge_param=ridge_param
 )
 
-if use_cuda:
-    esn.cuda()
-
 #print_adj_matrix(esn)
 #print_adj_matrix2(esn)
 #vis_weights_from_input_to_res(esn)
-replace_adj_matrix(esn)
+#replace_input_network_matrix(esn)
 
 #'''
+reservoir_matrix_tensor = custom_generate_matrix(
+    size=(reservoir_size, reservoir_size), dtype=torch.float)
+
+esn = replace_res_network_matrix_with_custom(esn, reservoir_matrix_tensor)
+#'''
+
+#esn = replace_res_network_matrix(esn)
+
+
+#'''
+if use_cuda:
+    esn.cuda()
+
 # For each batch
 for data in trainloader:
     # Inputs and outputs
@@ -231,7 +318,13 @@ y_predicted = y_predicted.cpu()
 # Show target and predicted
 plt.plot(train_targets[0, :plot_length, 0].data, 'r')
 plt.plot(y_predicted[0, :plot_length, 0].data, 'b')
-plt.savefig('netmod2.png')
+# read in HSBM network
+path = '/home/mcdansl1/Data/hsbm'
+list_of_graphml_files = os.listdir(path) # returns list
+
+#plt.savefig(str(list_of_graphml_files[1]) + '.png')
+#plt.savefig(str(reservoir_size) + '_' + str(connectivity) + '.png')
+plt.savefig('custom.png')
 #'''
 
 
