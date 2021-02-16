@@ -222,6 +222,17 @@ class ESN(Node):
         return self._esn_cell.w
     # end w
 
+    # Set washout
+    # New by Sean
+    @w.setter
+    def w(self, w):
+        """
+        w
+        :param w: New reservoir matrix
+        """
+        self._esn_cell.w = w
+    # end washout
+
     # Input matrix
     @property
     def w_in(self):
@@ -237,8 +248,8 @@ class ESN(Node):
     @w_in.setter
     def w_in(self, w_in):
         """
-        Washout
-        :param washout: New washout
+        w_in
+        :param w_in: New w_in matrix
         """
         self._esn_cell.w_in = w_in
     # end washout
