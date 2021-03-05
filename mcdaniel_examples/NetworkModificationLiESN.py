@@ -14,6 +14,11 @@ NEW GOAL:
 * Use Marisel's networks for the Reservoir 
 * Randomly select some of Marisel's networks and just create figures 
 
+NEW GOAL 3-5-21
+* What plotting and eval tools we have at our disposal 
+* What are our debugging tools which plots allow us to debug
+* Clean and comment for others
+* Send the link the Erik to play with
 '''
 
 import torch, sys, os
@@ -124,6 +129,9 @@ def custom_generate_matrix(size, dtype=torch.float64):
     return w
     # end _generate_matrix
 
+# use the same distribution that that custom is using and where ever marisel is 
+# a 1 pull a number from the distribution that the custom does and if its a 0
+# then leave as is
 def replace_res_network_matrix(esn):
 
     # read in HSBM network
@@ -135,7 +143,21 @@ def replace_res_network_matrix(esn):
     print(hsbm_adj_matrix)
 
     hsbm_adj_matrix_tensor = torch.tensor(hsbm_adj_matrix, dtype=torch.float)
+
+    # TODO Sean i have to do some stuff here where i change marisels 0 to random weights 
+    # based on the distribution from the custom network 
+    '''
+    # Generate matrix with entries from norm
+        w = torch.zeros(size, dtype=dtype)
+        w = w.normal_(mean=mean, std=std)
+    
+    Marisol code is the mask
+     # Generate mask from bernoulli
+        mask = torch.zeros(size, dtype=dtype)
+        mask.bernoulli_(p=connectivity)
+    '''
     esn.w = hsbm_adj_matrix_tensor
+
     print(esn.w.numpy())
 
     return esn
