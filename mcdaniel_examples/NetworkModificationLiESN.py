@@ -19,6 +19,11 @@ NEW GOAL 3-5-21
 * What are our debugging tools which plots allow us to debug
 * Clean and comment for others
 * Send the link the Erik to play with
+* Look for addtl' datasets 
+
+NEW GOAL 3-11-21
+* Create new ESN class that uses Marisol's networks instead of replacing W later
+  replace at creation of ESN object
 '''
 
 import torch, sys, os
@@ -142,20 +147,15 @@ def replace_res_network_matrix(esn):
     hsbm_adj_matrix = nx.to_numpy_matrix(G) # converts A's networkx to adj matrix to numpy numpy array
     print(hsbm_adj_matrix)
 
+    mean=0.0
+    std=1.0
+
+    hsbm_adj_matrix = np.where((hsbm_adj_matrix == 1), np.random.normal(mean, std, hsbm_adj_matrix.shape), hsbm_adj_matrix)
+
+    print(hsbm_adj_matrix)
+
     hsbm_adj_matrix_tensor = torch.tensor(hsbm_adj_matrix, dtype=torch.float)
 
-    # TODO Sean i have to do some stuff here where i change marisels 0 to random weights 
-    # based on the distribution from the custom network 
-    '''
-    # Generate matrix with entries from norm
-        w = torch.zeros(size, dtype=dtype)
-        w = w.normal_(mean=mean, std=std)
-    
-    Marisol code is the mask
-     # Generate mask from bernoulli
-        mask = torch.zeros(size, dtype=dtype)
-        mask.bernoulli_(p=connectivity)
-    '''
     esn.w = hsbm_adj_matrix_tensor
 
     print(esn.w.numpy())
@@ -179,15 +179,13 @@ def replace_input_network_matrix(esn):
     D_tensor = torch.tensor(D, dtype=torch.float)
 
     D_tensor = D_tensor.reshape((D_tensor.shape[1], D_tensor.shape[0]))
-    #print(D_tensor)
-    #print(D_tensor.shape)
+    
     esn.w_in = D_tensor
 
     if use_cuda:
         esn.cuda()
     
     esn = esn.cpu()
-    #print(esn.w_in.dtype)
 
     if use_cuda:
         esn.cuda()
@@ -221,11 +219,6 @@ plot_length = 200
 use_cuda = False or torch.cuda.is_available()
 
 print('Sean are we using CUDA: ', use_cuda)
-
-# Manual seed initialisation
-#np.random.seed(1)
-#torch.manual_seed(1)
-
 
 # NARMA30 dataset
 narma10_train_dataset = NARMADataset(train_sample_length, n_train_samples, 
@@ -276,22 +269,16 @@ esn = etrs.LiESN(
     ridge_param=ridge_param
 )
 
-#print_adj_matrix(esn)
-#print_adj_matrix2(esn)
-#vis_weights_from_input_to_res(esn)
-#replace_input_network_matrix(esn)
 
-#'''
+'''
 reservoir_matrix_tensor = custom_generate_matrix(
     size=(reservoir_size, reservoir_size), dtype=torch.float)
 
 esn = replace_res_network_matrix_with_custom(esn, reservoir_matrix_tensor)
-#'''
+'''
 
-#esn = replace_res_network_matrix(esn)
+esn = replace_res_network_matrix(esn)
 
-
-#'''
 if use_cuda:
     esn.cuda()
 
@@ -344,11 +331,4 @@ plt.plot(y_predicted[0, :plot_length, 0].data, 'b')
 path = '/home/mcdansl1/Data/hsbm'
 list_of_graphml_files = os.listdir(path) # returns list
 
-#plt.savefig(str(list_of_graphml_files[1]) + '.png')
-#plt.savefig(str(reservoir_size) + '_' + str(connectivity) + '.png')
 plt.savefig('custom.png')
-#'''
-
-
-
-
