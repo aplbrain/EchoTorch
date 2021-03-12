@@ -24,6 +24,17 @@ NEW GOAL 3-5-21
 NEW GOAL 3-11-21
 * Create new ESN class that uses Marisol's networks instead of replacing W later
   replace at creation of ESN object
+
+NEW GOAL 3-12-21
+* MGS time series dataset (or a second easily implementable dataset)
+* Create some record keeping code for automated testing of a few 100 networks 
+* Have a baseline ESN performance for each dataset (Bernoulli Mask)
+  the defualt ESN that comes with ET
+
+
+OVERALL GOALS 
+* Run over 100 of Mari's networks and plot out the RMSE and other 
+  relevant TS metrics (Review papers for more metrics)
 '''
 
 import torch, sys, os
@@ -92,10 +103,6 @@ def custom_generate_matrix(size, dtype=torch.float64):
     :param: Data type to generate
     :return: Generated matrix
     """
-    # Params
-    #connectivity = self.get_parameter('connectivity')
-    #mean = self.get_parameter('mean')
-    #std = self.get_parameter('std')
 
     #connectivity = 0.1954
     connectivity = 0.0824
@@ -255,8 +262,6 @@ wbias_generator = echotorch.utils.matrix_generation.NormalMatrixGenerator(
 )
 
 # Create a Leaky-integrated ESN,
-# with least-square training algo.
-# esn = etrs.ESN(
 esn = etrs.LiESN(
     input_dim=input_dim, # dims of the input used in win creation 
     hidden_dim=reservoir_size, # dims of the reservoir used in win creation 
@@ -268,8 +273,6 @@ esn = etrs.LiESN(
     wbias_generator=wbias_generator,
     ridge_param=ridge_param
 )
-
-
 '''
 reservoir_matrix_tensor = custom_generate_matrix(
     size=(reservoir_size, reservoir_size), dtype=torch.float)
@@ -319,6 +322,14 @@ print(u"Train MSE: {}".format(echotorch.utils.mse(y_predicted.data,
     train_targets.data)))
 print(u"Train NRMSE: {}".format(echotorch.utils.nrmse(y_predicted.data, 
     train_targets.data)))
+
+'''
+# Print training MSE and NRMSE
+print(u"Test MSE: {}".format(echotorch.utils.mse(y_predicted.data, 
+    train_targets.data)))
+print(u"Test NRMSE: {}".format(echotorch.utils.nrmse(y_predicted.data, 
+    train_targets.data)))
+'''
 
 # sending tensor back to host memory so that it can be plotted
 train_targets = train_targets.cpu()
